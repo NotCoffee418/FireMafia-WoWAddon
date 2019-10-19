@@ -11,13 +11,12 @@ end
 
 function FireMafia:CHAT_MSG_LOOT(event, Text)
 	-- if player looted, log it
-	print(Text)
-    --if (string.match(Text,"Elemental Fire")) then
+    if (string.match(Text,"Elemental Fire")) then
         pName = ParseNameFromLoot(Text)
 		pIndex = FindPlayerIndex(pName)
 		AddFireDrop(pIndex)		
         return
-    --end
+    end
 end
 
 function AddFireDrop(pIndex)
@@ -53,12 +52,14 @@ end
 function CommandHandler(cmd, args)
 	if args == "" then
 		CmdMain()
+	elseif args == "mark" then
+		CmdMark()
+	elseif args == "range" then
+		CmdRange()
 	elseif args == "reset" then
 		CmdReset()
 	elseif args == "list" then
 		CmdList()
-	elseif args == "mark" then
-		CmdMark()
 	else
 		print("Command argument was invalid. See below for help.")
 		CmdMain()
@@ -67,9 +68,10 @@ end
 
 function CmdMain()
 	print("Fire Mafia Commands:")
+	print("  /fm mark - Targets & marks mobs, use this in macro")
+	print("  /fm range - does something if target is in moonfire range")
 	print("  /fm reset [pname] - Resets counter for one or all players (!!pname doesnt work yet)")
 	print("  /fm list - Shows counter for all players")
-	print("  /fm mark - Targets & marks mobs, use this in macro")
 end
 
 function CmdReset(pName)
@@ -88,6 +90,10 @@ function CmdMark()
 	MarkTarget()
 end
 
+function CmdRange()
+	RangeHandler()
+end
+
 -- --------------
 -- END COMMANDS
 -- --------------
@@ -100,6 +106,15 @@ end
 function MarkTarget()
 	if GetRaidTargetIndex("target") == nil then
 		SetRaidTargetIcon("target", 8)
+	end
+end
+
+lastRangeCheckTarget = nil
+function RangeHandler()
+	tarGuid = UnitGUID("target")
+	if tarGuid ~= lastRangeCheckTarget and IsSpellInRange("Moonfire", "target") == 1 then
+		lastRangeCheckTarget = tarGuid
+		PlaySound(120, "master")
 	end
 end
 
