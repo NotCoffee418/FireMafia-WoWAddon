@@ -1,21 +1,23 @@
-FireMafia = LibStub("AceAddon-3.0"):NewAddon("FireMafia", "AceEvent-3.0")
+FireMafia = LibStub("AceAddon-3.0"):NewAddon("FireMafia", "AceEvent-3.0", "AceConsole-3.0")
 
+-- --------------
+-- TRACKER
+-- --------------
 fireDb = {}
-
 function FireMafia:OnEnable()
 	FireMafia:RegisterEvent("CHAT_MSG_LOOT")
+	FireMafia:RegisterChatCommand("fm", function(args) CommandHandler("fm", args) end )
 end
 
 function FireMafia:CHAT_MSG_LOOT(event, Text)
 	-- if player looted, log it
 	print(Text)
-    if (string.match(Text,"Elemental Fire")) then
+    --if (string.match(Text,"Elemental Fire")) then
         pName = ParseNameFromLoot(Text)
 		pIndex = FindPlayerIndex(pName)
 		AddFireDrop(pIndex)		
         return
-		DebugPrintDb()
-    end
+    --end
 end
 
 function AddFireDrop(pIndex)
@@ -41,9 +43,62 @@ function ParseNameFromLoot(Text)
   end  
 end
 
-function DebugPrintDb()
+-- --------------
+-- END TRACKER
+-- --------------
+
+-- --------------
+-- COMMANDS
+-- --------------
+function CommandHandler(cmd, args)
+	if args == "" then
+		CmdMain()
+	elseif args == "reset" then
+		CmdReset()
+	elseif args == "list" then
+		CmdList()
+	else
+		print("Command argument was invalid. See below for help.")
+		CmdMain()
+	end
+end
+
+function CmdMain()
+	print("Fire Mafia Commands:")
+	print("  /fm reset [pname] - Resets counter for one or all players (!!pname doesnt work yet)")
+	print("  /fm list - Shows counter for all players")
+	print("  /fm target - Targets & marks mobs, use this in macro")
+end
+
+function CmdReset(pName)
+	fireDb = {}
+	print("Elemental Fire loot counts have been reset.")
+end
+
+function CmdList()
 	print("Showing all entries")
 	for key,value in pairs(fireDb) do		
 		print(fireDb[key].Name .. ": " .. fireDb[key].Amount)
 	end
 end
+
+function CmdTarget()
+	FindTargetMark()
+end
+
+-- --------------
+-- END COMMANDS
+-- --------------
+
+
+-- --------------
+-- COMBAT
+-- --------------
+
+function FindTargetMark()
+
+end
+
+-- --------------
+-- END COMBAT
+-- --------------
