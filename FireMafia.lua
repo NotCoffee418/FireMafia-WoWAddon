@@ -2,19 +2,20 @@ FireMafia = LibStub("AceAddon-3.0"):NewAddon("FireMafia", "AceEvent-3.0")
 
 fireDb = {}
 
-
 function FireMafia:OnEnable()
 	FireMafia:RegisterEvent("CHAT_MSG_LOOT")
 end
 
 function FireMafia:CHAT_MSG_LOOT(event, Text)
-	-- if player looted fire
-    --if (string.find(Text,"Burning Pitch")) then
+	-- if player looted, log it
+	print(Text)
+    if (string.match(Text,"Elemental Fire")) then
         pName = ParseNameFromLoot(Text)
 		pIndex = FindPlayerIndex(pName)
 		AddFireDrop(pIndex)		
-        return		
-    --end
+        return
+		DebugPrintDb()
+    end
 end
 
 function AddFireDrop(pIndex)
@@ -30,13 +31,19 @@ function FindPlayerIndex(pName)
 	end
 	
 	-- notfound, create new index
-	newIndex = table.getn(fireDb)
-	fireDb[newIndex] = {Name = pName, Amount = 0}
-	return newIndex
+	fireDb[#fireDb+1] = {Name = pName, Amount = 0}
+	return FindPlayerIndex(pName)
 end
 
 function ParseNameFromLoot(Text)
   for word in Text:gmatch("%w+") do
     return word
   end  
+end
+
+function DebugPrintDb()
+	print("Showing all entries")
+	for key,value in pairs(fireDb) do		
+		print(fireDb[key].Name .. ": " .. fireDb[key].Amount)
+	end
 end
