@@ -57,6 +57,8 @@ function CommandHandler(cmd, args)
 		CmdReset()
 	elseif args == "list" then
 		CmdList()
+	elseif args == "mark" then
+		CmdMark()
 	else
 		print("Command argument was invalid. See below for help.")
 		CmdMain()
@@ -67,7 +69,7 @@ function CmdMain()
 	print("Fire Mafia Commands:")
 	print("  /fm reset [pname] - Resets counter for one or all players (!!pname doesnt work yet)")
 	print("  /fm list - Shows counter for all players")
-	print("  /fm target - Targets & marks mobs, use this in macro")
+	print("  /fm mark - Targets & marks mobs, use this in macro")
 end
 
 function CmdReset(pName)
@@ -76,14 +78,14 @@ function CmdReset(pName)
 end
 
 function CmdList()
-	print("Showing all entries")
+	print("Showing all entries:")
 	for key,value in pairs(fireDb) do		
 		print(fireDb[key].Name .. ": " .. fireDb[key].Amount)
 	end
 end
 
-function CmdTarget()
-	FindTargetMark()
+function CmdMark()
+	MarkTarget()
 end
 
 -- --------------
@@ -95,8 +97,10 @@ end
 -- COMBAT
 -- --------------
 
-function FindTargetMark()
-
+function MarkTarget()
+	if GetRaidTargetIndex("target") == nil then
+		SetRaidTargetIcon("target", 8)
+	end
 end
 
 -- --------------
