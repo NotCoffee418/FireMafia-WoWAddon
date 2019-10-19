@@ -1,0 +1,6 @@
+## Interface: 11302
+## Title: FireMafia
+## Author: Shinji
+## Version: 0.0.1
+
+FireMafia.lua
