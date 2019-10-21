@@ -21,7 +21,11 @@ end
 
 function AddFireDrop(pIndex)
 	fireDb[pIndex].Amount = fireDb[pIndex].Amount + 1
-	print(fireDb[pIndex].Name .. ": " .. fireDb[pIndex].Amount)
+	if (UnitInParty("player") == false) then
+		print(fireDb[pIndex].Name .. ": " .. fireDb[pIndex].Amount)
+	else
+		CmdList()
+	end
 end
 
 function FindPlayerIndex(pName)
@@ -80,9 +84,28 @@ function CmdReset(pName)
 end
 
 function CmdList()
-	print("Showing all entries:")
-	for key,value in pairs(fireDb) do		
-		print(fireDb[key].Name .. ": " .. fireDb[key].Amount)
+	strDesc = "Showing all Elemental Fire drops:"
+	if (UnitInParty("player")) then
+		SendChatMessage(strDesc, "PARTY", DEFAULT_CHAT_FRAME.editBox.languageID);
+	else
+		print(strDesc)	
+	end
+	
+	for key,value in pairs(fireDb) do	
+		
+		-- Write player name and replace You with self's name
+		entryStr = fireDb[key].Name
+		if (entryStr == "You") then
+		 entryStr = UnitName("player")
+		end
+		entryStr = entryStr .. ": " .. fireDb[key].Amount
+		
+		-- Print to party or console
+		if (UnitInParty("player")) then
+			SendChatMessage(entryStr, "PARTY", DEFAULT_CHAT_FRAME.editBox.languageID);
+		else
+			print(entryStr)	
+		end
 	end
 end
 
