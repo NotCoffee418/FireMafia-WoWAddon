@@ -14,13 +14,14 @@ function FireMafia:CHAT_MSG_LOOT(event, Text)
     if (string.match(Text,"Elemental Fire")) then
         pName = ParseNameFromLoot(Text)
 		pIndex = FindPlayerIndex(pName)
-		AddFireDrop(pIndex)		
+		fCount = ParseCountFromLoot(Text)
+		AddFireDrop(pIndex, fCount)		
         return
     end
 end
 
-function AddFireDrop(pIndex)
-	fireDb[pIndex].Amount = fireDb[pIndex].Amount + 1
+function AddFireDrop(pIndex, fCount)
+	fireDb[pIndex].Amount = fireDb[pIndex].Amount + fCount
 	if (UnitInParty("player") == false) then
 		print(fireDb[pIndex].Name .. ": " .. fireDb[pIndex].Amount)
 	else
@@ -44,6 +45,15 @@ function ParseNameFromLoot(Text)
   for word in Text:gmatch("%w+") do
     return word
   end  
+end
+
+function ParseCountFromLoot(Text)
+  for word in Text:gmatch("%d+") do
+	if tonumber(word) <= 10 then -- string that turns chat white should be ignored
+		return word
+	end
+  end
+  return 1
 end
 
 -- --------------
