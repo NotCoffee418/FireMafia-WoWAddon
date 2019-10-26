@@ -6,12 +6,22 @@ FireMafia = LibStub("AceAddon-3.0"):NewAddon("FireMafia", "AceEvent-3.0", "AceCo
 fireDb = {}
 function FireMafia:OnEnable()
 	FireMafia:RegisterEvent("CHAT_MSG_LOOT")
+	FireMafia:RegisterEvent("TRADE_ACCEPT_UPDATE")
 	FireMafia:RegisterChatCommand("fm", function(args) CommandHandler("fm", args) end )
 end
 
+
+local ignoreDrops = 0
 function FireMafia:CHAT_MSG_LOOT(event, Text)
 	-- if player looted, log it
     if (string.match(Text,"Elemental Fire")) then
+		-- Ignore "drop" resulting from trade
+		if (ignoreDrops > 0) then
+			ignoreDrops = ignoreDrops -1
+			return
+		end
+		
+		-- Add the drop
         pName = ParseNameFromLoot(Text)
 		pIndex = FindPlayerIndex(pName)
 		fCount = ParseCountFromLoot(Text)
@@ -20,12 +30,14 @@ function FireMafia:CHAT_MSG_LOOT(event, Text)
     end
 end
 
-function AddFireDrop(pIndex, fCount)
+function AddFireDrop(pIndex, fCount, silent)
 	fireDb[pIndex].Amount = fireDb[pIndex].Amount + fCount
-	if (UnitInParty("player") == false) then
-		print(fireDb[pIndex].Name .. ": " .. fireDb[pIndex].Amount)
-	else
-		CmdList()
+	if (silent ~= true) then
+		if (UnitInParty("player") == false) then
+			print(fireDb[pIndex].Name .. ": " .. fireDb[pIndex].Amount)
+		else
+			CmdList()
+		end
 	end
 end
 
@@ -49,7 +61,7 @@ end
 
 function ParseCountFromLoot(Text)
   for word in Text:gmatch("%d+") do
-	if tonumber(word) <= 10 then -- string that turns chat white should be ignored
+	if tonumber(word) <= 10 then -- string that turns chat white should be ignored. this is dodgy tho, dont use this for non-white items
 		return word
 	end
   end
@@ -58,6 +70,77 @@ end
 
 -- --------------
 -- END TRACKER
+-- --------------
+
+-- --------------
+-- TRADE HANDLER
+-- --------------
+
+-- triggers when trade goes through - 
+-- BUG IN API: seems to not work if you're first to accept the trade
+function FireMafia:TRADE_ACCEPT_UPDATE(_, playerAccepted, targetAccepted)
+	-- if player looted, log it
+    if (playerAccepted == 1 and targetAccepted == 1) then -- trade went through
+		playerIndex = FindPlayerIndex(UnitName("player"))
+		targetIndex = FindPlayerIndex(UnitName("NPC"))
+		
+		-- handle given
+		given = TradeCountFire(0)
+		AddFireDrop(playerIndex, tonumber("-"..given), true)
+		AddFireDrop(targetIndex, given, true)
+		
+		-- handle taken
+		taken = TradeCountFire(1)
+		AddFireDrop(playerIndex, taken, true)
+		AddFireDrop(targetIndex, tonumber("-"..taken), true)
+		
+		-- Show updated list
+		CmdList()
+    end
+end
+
+function TradeCountFire(who)
+	total = 0
+	
+	-- Count fire being traded
+	for i = 1, 6, 1 do -- check each slot
+		itemName, _, amount = rGetTradeItemInfo(who, i)
+		if itemName == "Elemental Fire" then
+			total = total + amount
+			
+			-- Amount of "drops" to ignore after trade receive
+			if (who == 1) then 
+				ignoreDrops = ignoreDrops + 1
+			end
+		end
+	end
+	
+	-- Value gold as fire at fixed rate
+	moneyInput = 0
+	fireGoldRate = 40000 --4g
+	if who == 0 then
+		moneyInput = GetPlayerTradeMoney()
+	else	
+		moneyInput = GetTargetTradeMoney()
+	end
+print(moneyInput)
+	if (moneyInput > 0) then
+		total = total + (moneyInput / fireGoldRate)
+	end
+	
+	return total
+end
+
+function rGetTradeItemInfo(who, slot)
+	-- Run the correct function depending on slot
+	if who == 0 then
+		return GetTradePlayerItemInfo(slot)
+	else
+		return GetTradeTargetItemInfo(slot)
+	end
+end
+-- --------------
+-- END TRADE HANDLER
 -- --------------
 
 -- --------------
@@ -101,8 +184,7 @@ function CmdList()
 		print(strDesc)	
 	end
 	
-	for key,value in pairs(fireDb) do	
-		
+	for key,value in pairs(fireDb) do		
 		-- Write player name and replace You with self's name
 		entryStr = fireDb[key].Name
 		if (entryStr == "You") then
