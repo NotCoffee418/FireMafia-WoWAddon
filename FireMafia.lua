@@ -5,13 +5,12 @@ FireMafia = LibStub("AceAddon-3.0"):NewAddon("FireMafia", "AceEvent-3.0", "AceCo
 -- --------------
 fireDb = {}
 function FireMafia:OnEnable()
-	FireMafia:RegisterEvent("CHAT_MSG_LOOT")
-	FireMafia:RegisterEvent("TRADE_ACCEPT_UPDATE")
 	FireMafia:RegisterChatCommand("fm", function(args) CommandHandler("fm", args) end )
 end
 
 
 local ignoreDrops = 0
+local addonEnabled = false;
 function FireMafia:CHAT_MSG_LOOT(event, Text)
 	-- if player looted, log it
     if (string.match(Text,"Elemental Fire")) then
@@ -31,6 +30,10 @@ function FireMafia:CHAT_MSG_LOOT(event, Text)
 end
 
 function AddFireDrop(pIndex, fCount, silent)
+	if (addonEnabled == false) then 
+		return
+	end
+	
 	fireDb[pIndex].Amount = fireDb[pIndex].Amount + fCount
 	if (silent ~= true) then
 		if (UnitInParty("player") == false) then
@@ -157,6 +160,10 @@ function CommandHandler(cmd, args)
 		CmdReset()
 	elseif args == "list" then
 		CmdList()
+	elseif args == "on" then
+		CmdEnableFm()
+	elseif args == "off" then
+		CmdDisableFm()
 	else
 		print("Command argument was invalid. See below for help.")
 		CmdMain()
@@ -165,6 +172,7 @@ end
 
 function CmdMain()
 	print("Fire Mafia Commands:")
+	print("  /fm on/off - Starts or stops Fire Mafia (does not reset)")
 	print("  /fm mark - Targets & marks mobs, use this in macro")
 	print("  /fm range - does something if target is in moonfire range")
 	print("  /fm reset [pname] - Resets counter for one or all players (!!pname doesnt work yet)")
@@ -207,6 +215,21 @@ end
 
 function CmdRange()
 	RangeHandler()
+end
+
+function CmdEnableFm()
+	addonEnabled = true
+	print("FireMafia addon started.")
+	FireMafia:RegisterEvent("CHAT_MSG_LOOT")
+	FireMafia:RegisterEvent("TRADE_ACCEPT_UPDATE")
+	CmdList()
+end
+
+function CmdDisableFm()
+	addonEnabled = false
+	print("FireMafia addon stopped.")
+	FireMafia:UnregisterEvent("CHAT_MSG_LOOT")
+	FireMafia:UnregisterEvent("TRADE_ACCEPT_UPDATE")
 end
 
 -- --------------
