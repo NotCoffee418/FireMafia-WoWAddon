@@ -58,6 +58,9 @@ end
 
 function ParseNameFromLoot(Text)
   for word in Text:gmatch("%w+") do
+	if word == "You" then
+		return UnitName("player")
+	end
     return word
   end  
 end
