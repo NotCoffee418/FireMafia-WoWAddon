@@ -57,7 +57,7 @@ function FindPlayerIndex(pName)
 end
 
 function ParseNameFromLoot(Text)
-  for word in Text:gmatch("%w+") do
+  for word in Text:gmatch("[^%s]+") do
 	if word == "You" then
 		return UnitName("player")
 	end
@@ -123,7 +123,7 @@ function TradeCountFire(who)
 	
 	-- Value gold as fire at fixed rate
 	moneyInput = 0
-	fireGoldRate = 40000 --4g
+	fireGoldRate = 70000 --7g
 	if who == 0 then
 		moneyInput = GetPlayerTradeMoney()
 	else	
@@ -167,6 +167,8 @@ function CommandHandler(cmd, args)
 		CmdEnableFm()
 	elseif args == "off" then
 		CmdDisableFm()
+	elseif args == "test" then
+		CmdTest()
 	else
 		print("Command argument was invalid. See below for help.")
 		CmdMain()
@@ -180,6 +182,7 @@ function CmdMain()
 	print("  /fm range - does something if target is in moonfire range")
 	print("  /fm reset [pname] - Resets counter for one or all players (!!pname doesnt work yet)")
 	print("  /fm list - Shows counter for all players")
+	print("  /fm test - Tests whatever is in the test function")
 end
 
 function CmdReset(pName)
@@ -235,6 +238,18 @@ function CmdDisableFm()
 	FireMafia:UnregisterEvent("TRADE_ACCEPT_UPDATE")
 end
 
+function CmdTest()
+	testStrs = {
+		"Obäma receives loot: [^$^$^^$^Something^$^^$^$^$]",
+		"Özi receives loot: [^$^$^^$^Something^$^^$^$^$]",
+		"Beppy receives loot: [^$^$^^$^Something^$^^$^$^$]",
+		"tes@t- receives loot: [^$^$^^$^Something^$^^$^$^$]",		
+	}
+	for key,value in ipairs(testStrs) do
+		print(value)
+		print(ParseNameFromLoot(value))
+	end
+end
 -- --------------
 -- END COMMANDS
 -- --------------
